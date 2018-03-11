@@ -12,15 +12,13 @@ import Network.Socket (HostName, PortNumber)
 
 import Nanocoin.Network.Utils (RPCPort, P2PPort)
 
-type BootnodeConfig = (HostName, PortNumber)
-
 data Config = Config
-  { hostname     :: HostName         -- ^ Hostname of node
-  , rpcPort      :: RPCPort          -- ^ Port to run RPC server on
-  , p2pPort      :: P2PPort          -- ^ Port to run p2p process on
-  , bootnodes    :: [BootnodeConfig] -- ^ List of bootnode hostnames and ports
-  , keysFilePath :: Maybe FilePath   -- ^ Filepath to read node keys from
-  , logFilePath  :: Maybe FilePath   -- ^ Filepath to log to
+  { hostname     :: HostName        -- ^ Hostname of node
+  , rpcPort      :: RPCPort         -- ^ Port to run RPC server on
+  , p2pPort      :: P2PPort         -- ^ Port to run p2p process on
+  , bootnodes    :: [Text]          -- ^ List of bootnode hostnames and ports
+  , keysFilePath :: Maybe FilePath  -- ^ Filepath to read node keys from
+  , logFilePath  :: Maybe FilePath  -- ^ Filepath to log to
   }
 
 -- Read config from config file
@@ -30,7 +28,7 @@ readConfig cfgFile = do
   Config <$> C.require cfg "nanocoin.hostname"
          <*> C.require cfg "nanocoin.rpcPort"
          <*> readP2PPort cfg
-         <*> readBootnodes cfg
+         <*> C.require cfg "nanocoin.bootnodes"
          <*> C.lookup  cfg "nanocoin.keysPath"
          <*> C.lookup  cfg "nanocoin.logFilePath"
   where
@@ -38,11 +36,6 @@ readConfig cfgFile = do
     readP2PPort cfg = do
       portNum <- C.require cfg "nanocoin.p2pPort"
       return $ intToP2PPort portNum
-
-    readBootnodes :: C.Config -> IO [BootnodeConfig]
-    readBootnodes cfg = do
-      bnCfg <- C.require cfg "nanocoin.bootnodes"
-      return $ map (second intToP2PPort) bnCfg
 
     intToP2PPort :: Int -> P2PPort
     intToP2PPort = fromIntegral

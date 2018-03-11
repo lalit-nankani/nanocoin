@@ -9,6 +9,7 @@ import Control.Concurrent.Chan
 import Control.Distributed.Process.Lifted (NodeId(..))
 
 import qualified Data.Set as Set
+import Data.Maybe (catMaybes)
 
 import Config
 import Logger
@@ -65,7 +66,9 @@ initNode (Config hostname rpcPort p2pPort bootnodes mKeysPath mLogPath) = do
       nodeEnv
       cmdChan
 
-  bootnodeIds <- mapM (uncurry Utils.mkNodeId) bootnodes
+  -- Construct bootnode NodeIds from bootnode configs
+  -- XXX Fail with more information on invalid hostname:port config
+  bootnodeIds <- fmap catMaybes $ mapM Utils.mkNodeId' bootnodes
 
   -- Fork P2P server
   forkIO $
