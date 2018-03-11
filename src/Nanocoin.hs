@@ -1,6 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections #-}
 
 module Nanocoin (
   initNode
@@ -13,6 +10,7 @@ import Control.Distributed.Process.Lifted (NodeId(..))
 
 import qualified Data.Set as Set
 
+import Config
 import Logger
 import qualified Key
 import qualified Nanocoin.Block as B
@@ -29,12 +27,9 @@ import qualified Nanocoin.Network.Utils as Utils
 -- | Initializes a node on the network with it's own copy of
 -- the blockchain, and invokes a p2p server and an http server.
 initNode
-  :: Utils.RPCPort
-  -> Utils.P2PPort
-  -> Maybe FilePath
-  -> Logger
+  :: Config
   -> IO ()
-initNode rpcPort p2pPort mKeysPath logger = do
+initNode (Config hostname rpcPort p2pPort bootnodes mKeysPath mLogPath) = do
 
   -- Initialize Node Keys
   keys <- case mKeysPath of
@@ -54,14 +49,10 @@ initNode rpcPort p2pPort mKeysPath logger = do
 
   -- Initialize NodeState & NodeConfig
   nodeState  <- Node.initNodeState genesisBlock
-  -- XXX remove hardcoded values, get from config file
-  nodeConfig <- Node.initNodeConfig "127.0.1.1" p2pPort rpcPort (Just keys)
+  nodeConfig <- Node.initNodeConfig hostname p2pPort rpcPort (Just keys)
   let nodeEnv = Node.NodeEnv nodeConfig nodeState
 
-  -- XXX remove hardcoded values, get from config file
-  node1Id <- Utils.mkNodeId "127.0.1.1" 8001
-  node2Id <- Utils.mkNodeId "127.0.1.1" 8002
-  let bootnodes = [node1Id, node2Id]
+  logger <- mkLogger mLogPath
 
   -- Init chan to send Msgs from
   -- rpc & console proc to p2p network
@@ -74,13 +65,15 @@ initNode rpcPort p2pPort mKeysPath logger = do
       nodeEnv
       cmdChan
 
+  bootnodeIds <- mapM (uncurry Utils.mkNodeId) bootnodes
+
   -- Fork P2P server
   forkIO $
     P2P.bootstrap
       logger
       nodeEnv
       cmdChan
-      bootnodes
+      bootnodeIds
 
   -- Run cmd line interface
   CLI.cli logger nodeEnv cmdChan

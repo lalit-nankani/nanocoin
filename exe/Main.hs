@@ -1,38 +1,42 @@
+
 module Main where
 
 import Protolude hiding (option)
 
-import Data.Maybe (fromMaybe)
-
+import Config (Config(..), readConfig)
 import Nanocoin (initNode)
 import Nanocoin.Network.Utils (RPCPort, P2PPort)
 
 import Options.Applicative
-import Logger
+import Network.Socket (HostName, PortNumber)
 
-data Config = Config
-  { rpcPort      :: RPCPort
-  , p2pPort      :: P2PPort
-  , keysPath     :: Maybe FilePath
-  , logFilepath  :: Maybe FilePath
-  }
-
-defaultConfig :: Config
-defaultConfig = Config
-  { rpcPort     = 3000
-  , p2pPort     = fromIntegral (8001 :: Int)
-  , keysPath    = Nothing
-  , logFilepath = Nothing
-  }
+fallback :: Parser (Maybe a) -> a -> Parser a
+fallback parser x = fallback' x <$> parser
+  where
+    fallback' (Just x) _ = x
+    fallback' Nothing x  = x
 
 main :: IO ()
 main = do
-    Config rpc p2p mKeys mLogFile <- execParser (info parser mempty)
-    logger <- mkLogger mLogFile
-    initNode rpc p2p mKeys logger
+    -- Read config from config file
+    defaultConfig <- readConfig "config"
+    -- Override config with cmd line arguments
+    config <- execParser $
+      info (parseConfig defaultConfig) mempty
+    initNode config
   where
-    intToP2PPort :: Int -> P2PPort
-    intToP2PPort = fromIntegral
+    parseConfig config = Config
+      <$> hostnameParser `fallback` (hostname config)
+      <*> rpcPortParser  `fallback` (rpcPort config)
+      <*> p2pPortParser  `fallback` (p2pPort config)
+      <*> pure (bootnodes config) -- XXX add cmd line option for adding bootnodes
+      <*> keysParser
+      <*> logFileParser
+
+    hostnameParser :: Parser (Maybe HostName)
+    hostnameParser = optional $
+      option auto $ long "hostname"
+                 <> metavar "HOSTNAME"
 
     rpcPortParser :: Parser (Maybe RPCPort)
     rpcPortParser = optional $
@@ -42,7 +46,7 @@ main = do
 
     p2pPortParser :: Parser (Maybe P2PPort)
     p2pPortParser =
-      fmap (fmap intToP2PPort) $
+      fmap (fmap fromIntegral) $
         optional $ option auto $
              long "p2p-port"
           <> short 'n'
@@ -59,9 +63,3 @@ main = do
       strOption $ long "logfile"
               <> short 'f'
               <> metavar "LOG_FILE"
-
-    parser = Config
-      <$> (fromMaybe (rpcPort defaultConfig) <$> rpcPortParser)
-      <*> (fromMaybe (p2pPort defaultConfig) <$> p2pPortParser)
-      <*> keysParser
-      <*> logFileParser
