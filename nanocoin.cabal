@@ -31,10 +31,12 @@ library
                      Hash,
                      Key,
                      Logger,
+                     Config,
                      Time
 
   build-depends:
     base              >= 4.6    && <5.0,
+    configurator      >= 0.3.0.0, 
     transformers      >= 0.4    && <0.6,
     transformers-base >= 0.4    && <0.6,
     mtl               >= 2.2.0  && <2.3,
@@ -74,7 +76,8 @@ library
 
 
   default-language:   Haskell2010
-  default-extensions: OverloadedStrings NoImplicitPrelude
+  default-extensions: OverloadedStrings NoImplicitPrelude ScopedTypeVariables
+                      DeriveGeneric TupleSections 
   hs-source-dirs:     src
   ghc-options:
     -Werror

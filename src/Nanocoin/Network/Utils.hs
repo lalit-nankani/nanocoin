@@ -6,6 +6,7 @@ module Nanocoin.Network.Utils (
   RPCPort,
 
   mkNodeId,
+  mkNodeId',
 
 ) where
 
@@ -14,6 +15,7 @@ import Protolude hiding (put,get,intercalate)
 import Control.Distributed.Process.Lifted (NodeId(..))
 
 import Data.Aeson (ToJSON(..))
+import qualified Data.Text (splitOn)
 import Data.ByteString (intercalate)
 import Data.Serialize (Serialize, put, get, putWord16be, getWord16be)
 
@@ -39,3 +41,11 @@ mkNodeId hostname' portNum = do
   where
     resolveHostname =
       inet_ntoa . hostAddress <=< getHostByName
+
+mkNodeId' :: Text -> IO (Maybe NodeId)
+mkNodeId' t =
+  case Data.Text.splitOn ":" t of
+    [hostname,portStr] ->
+      case readMaybe (toS portStr) of
+        Nothing -> pure Nothing
+        Just port -> Just <$> mkNodeId (toS hostname) port
