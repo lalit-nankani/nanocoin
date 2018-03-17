@@ -1,6 +1,6 @@
 machine:
   environment:
-    STACK_VERION: 1.5.1
+    STACK_VERION: 1.6.5
 
 dependencies:
   cache_directories:
@@ -11,7 +11,6 @@ dependencies:
     - tar -xzf /tmp/stack.tar.gz --strip-components=1 -C /tmp/stack/
     - sudo mv /tmp/stack /usr/bin/stack
   override:
-    - stack upgrade
     - stack setup
     - stack build
 
