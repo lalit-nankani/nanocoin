@@ -9,9 +9,9 @@ dependencies:
     - wget https://github.com/commercialhaskell/stack/releases/download/v${STACK_VERION}/stack-${STACK_VERION}-linux-x86_64.tar.gz -O /tmp/stack.tar.gz
     - mkdir /tmp/stack/
     - tar -xzf /tmp/stack.tar.gz --strip-components=1 -C /tmp/stack/
-    - sudo mv /tmp/stack ~/.local/bin/stack
-    - sudo cp ~/.local/bin/stack /usr/bin/stack
+    - sudo mv /tmp/stack /usr/bin/stack
   override:
+    - stack update
     - stack setup
     - stack build
 
