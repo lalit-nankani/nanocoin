@@ -72,6 +72,9 @@ p2pControllerProc bootnodes = do
   pid <- getSelfPid
   register (show PeerDiscovery) pid
 
+  -- Add self as peer node
+  Node.addPeer =<< fmap Peer getSelfNode
+
   -- Discover bootnode peers in the network
   mapM_ discoverPeer bootnodes
 
@@ -133,10 +136,10 @@ onPeerQuery pid = do
 onPeers :: Peers -> Node.NodeProcessM ()
 onPeers newpeers = do
   say "Received list of peers..."
-  peers <- Node.getPeers
-  forM_ (Set.toList newpeers) $ \peer@(Peer nid) ->
-    unless (peer `Set.member` peers) $ do
-      whereisRemoteAsync nid (show PeerDiscovery)
+  forM_ (Set.toList newpeers) $ \peer@(Peer nid) -> do
+    peers <- Node.getPeers
+    unless (peer `Set.member` peers) $
+      discoverPeer nid
 
 -- | Remove a peer from the peers list and unmonitor the process
 onMonitorNotif :: ProcessMonitorNotification -> Node.NodeProcessM ()
@@ -165,7 +168,7 @@ createLocalNode
   -> P2PPort
   -> IO (Either Text LocalNode)
 createLocalNode host port = do
-  eTransport <- createTransport host port defaultTCPParameters
+  eTransport <- createTransport host port (host,) defaultTCPParameters
   case eTransport of
     Left err -> pure $ Left $ show err
     Right transport -> Right <$>

@@ -2,8 +2,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
--- XXX RENAME:
--- module Nanocoin.Network.Utils
 module Nanocoin.Network.Peer (
   Peer(..),
   Peers,
