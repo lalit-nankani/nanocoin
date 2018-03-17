@@ -11,7 +11,7 @@ dependencies:
     - tar -xzf /tmp/stack.tar.gz --strip-components=1 -C /tmp/stack/
     - sudo mv /tmp/stack /usr/bin/stack
   override:
-    - stack update
+    - stack upgrade
     - stack setup
     - stack build
 
