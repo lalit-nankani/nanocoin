@@ -11,8 +11,8 @@ dependencies:
     - mkdir /tmp/stack/
     - tar -xzf /tmp/stack.tar.gz --strip-components=1 -C /tmp/stack/
     - sudo mv /tmp/stack /usr/bin/stack
-    - which stack
   override:
+    - sudo cp /usr/bin/stack ~/.local/bin/stack 
     - which stack
     - stack setup
     - stack build
