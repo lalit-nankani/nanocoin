@@ -1,11 +1,11 @@
 name:                nanocoin
 version:             0.1
 synopsis:            Simple blockchain/crypto currency implemenation
-license:             Apache
+license:             AGPL
 license-file:        LICENSE
 author:              Adjoint Inc
 maintainer:          info@adjoint.io
-copyright:           2017 Adjoint Inc
+copyright:           2017-2018 Adjoint Inc
 Category:            Finance
 build-type:          Simple
 cabal-version:       >=1.10
