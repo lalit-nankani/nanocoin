@@ -5,6 +5,9 @@ Nanocoin
 
 Nanocoin is toy currency project in Haskell.
 
+This project is for educational use only. Adjoint does not support or encourage
+any development on cryptocurrency projects. Use of this repository is governed
+pursuant to US law under the Affero GPL License.
 
 License
 -------
